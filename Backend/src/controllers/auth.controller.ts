@@ -2,6 +2,7 @@ import userModel from "../models/user.model";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { Request, Response } from "express";
+import { profile } from "node:console";
 
 async function registerUser(req :Request, res: Response ){
     const { name, email, password, phone } = req.body;
@@ -86,4 +87,24 @@ async function loginUser( req: Request, res:Response ){
 
 }
 
-export  {registerUser, loginUser};
+async function logoutUser(req: Request, res: Response){
+    res.clearCookie("token");
+    return res.status(200).json({
+        message: "Loggedout successfully"
+    })
+}
+async function updateProfile( req: Request, res: Response ){
+    try{
+    const {profilepic} = req.body;
+
+    const id = (req as any).user._id;
+
+    if(!profilepic){
+        return res.status(404).json("Profile photo not found");
+    }
+}catch(err){
+    console.log("pfp error: ", err);
+}
+}
+
+export  {registerUser, loginUser, logoutUser};
