@@ -2,7 +2,9 @@ import userModel from "../models/user.model";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { Request, Response } from "express";
-import { profile } from "node:console";
+import cloudinary from "../lib/cloudinary";
+import protectRoute from '../middleware/auth.middleware';
+
 
 async function registerUser(req :Request, res: Response ){
     const { name, email, password, phone } = req.body;
@@ -102,9 +104,28 @@ async function updateProfile( req: Request, res: Response ){
     if(!profilepic){
         return res.status(404).json("Profile photo not found");
     }
-}catch(err){
+
+    const upload = await cloudinary.uploader.upload(profilepic);
+    const updatedUser = await userModel.findByIdAndUpdate(id, {profilePic:upload.secure_url}, {new: true});
+
+    res.status(200).json(updatedUser);
+    }catch(err){
     console.log("pfp error: ", err);
-}
+    res.status(500).json("Internal error");
+    }
 }
 
-export  {registerUser, loginUser, logoutUser};
+async function checkAuth(req: Request, res: Response){
+    
+    try{
+        res.status(200).json((req as any).user);
+
+    }catch(err){
+        console.log("Error in check auth", err);
+        res.status(500).json({
+            message:"Internal Server error"
+        })
+    }
+}
+
+export  {registerUser, loginUser, logoutUser, updateProfile, checkAuth};
